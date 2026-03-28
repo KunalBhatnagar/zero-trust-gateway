@@ -34,12 +34,12 @@ app.get('/health', (req, res) => {
 
 app.use('/admin', require('./routes/keys'));
 // ----- MIDDLEWARE CHAIN (added phase by phase) -----
-// Phase 4: app.use(require('./middleware/ipCheck'))
-
-// Phase 4: app.use(require('./middleware/auth'))
+// Phase 4: 
+app.use(require('./middleware/ipCheck'))
+app.use(require('./middleware/auth'))
 app.use(require('./middleware/auth'));
-// Phase 5: app.use(require('./middleware/rateLimit'))
-// Phase 6: app.use(require('./middleware/geoBlock'))
+app.use(require('./middleware/rateLimit'))
+app.use(require('./middleware/geoBlock'))
 
 // Phase 3: Proxy (forward to upstream)
 app.use(forwardProxy);
