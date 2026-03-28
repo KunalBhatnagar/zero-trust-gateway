@@ -32,9 +32,12 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+app.use('/admin', require('./routes/keys'));
 // ----- MIDDLEWARE CHAIN (added phase by phase) -----
 // Phase 4: app.use(require('./middleware/ipCheck'))
+
 // Phase 4: app.use(require('./middleware/auth'))
+app.use(require('./middleware/auth'));
 // Phase 5: app.use(require('./middleware/rateLimit'))
 // Phase 6: app.use(require('./middleware/geoBlock'))
 
