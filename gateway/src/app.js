@@ -17,6 +17,7 @@ import geoBlockMiddleware from './middleware/geoBlock.js';
 import forwardProxy from './proxy/forward.js';
 
 const app        = express();
+app.set('trust proxy', true);
 const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
