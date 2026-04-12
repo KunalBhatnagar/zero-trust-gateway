@@ -12,4 +12,4 @@ function generateAPIKey() {
   return 'sk_live_' + randomBytes(24).toString('hex');
 }
 
-export default { hashKey, generateAPIKey };
+export { hashKey, generateAPIKey };

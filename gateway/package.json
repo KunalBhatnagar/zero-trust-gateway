@@ -6,9 +6,9 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "test": "jest tests/unit --coverage",
-    "test:integration": "jest tests/integration"
-
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest tests/unit --coverage",
+    "test:integration":   "NODE_OPTIONS=--experimental-vm-modules jest tests/integration --runInBand",
+    "test:all":           "NODE_OPTIONS=--experimental-vm-modules jest --runInBand"
   },
   "keywords": [],
   "author": "",

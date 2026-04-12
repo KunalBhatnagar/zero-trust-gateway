@@ -16,4 +16,4 @@ function emitThreat(data) {
   io.emit('threat:detected', data);
 }
 
-export default { initEmitter, emitRequest, emitThreat };
+export { initEmitter, emitRequest, emitThreat };

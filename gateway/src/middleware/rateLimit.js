@@ -1,6 +1,6 @@
 // gateway/src/middleware/rateLimit.js
 
-import { zRemRangeByScore, zCard, zAdd, expire } from '../db/redis';
+import { zRemRangeByScore, zCard, zAdd, expire } from '../db/redis.js';
 
 // Core sliding window function (exported so tests can use it directly)
 async function slidingWindowCheck(clientId, limitPerMin) {

@@ -17,3 +17,5 @@ pool.connect((err, client, release) => {
 });
 
 export default pool;
+
+export const query = (...args) => pool.query(...args);

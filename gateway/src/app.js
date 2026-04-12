@@ -1,10 +1,20 @@
-require('dotenv').config();
+// gateway/src/app.js
+
+import 'dotenv/config';
 import express, { json } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import { initEmitter } from './events/emitter';
+import { initEmitter } from './events/emitter.js';
+import keysRouter from './routes/keys.js';
+import statsRouter from './routes/stats.js';
+import loggerMiddleware from './middleware/logger.js';
+import ipCheckMiddleware from './middleware/ipCheck.js';
+import authMiddleware from './middleware/auth.js';
+import rateLimitMiddleware from './middleware/rateLimit.js';
+import geoBlockMiddleware from './middleware/geoBlock.js';
+import forwardProxy from './proxy/forward.js';
 
 const app        = express();
 const httpServer = createServer(app);
@@ -34,16 +44,16 @@ app.use('/admin', (req, res, next) => {
     return res.status(401).json({ error: 'UNAUTHORIZED' });
   }
   next();
-}, require('./routes/keys'), require('./routes/stats'));
+}, keysRouter, statsRouter);
 
 // Gateway middleware chain
-app.use(require('./middleware/logger'));   // logs every request, added Phase 8
-app.use(require('./middleware/ipCheck'));
-app.use(require('./middleware/auth'));
-app.use(require('./middleware/rateLimit'));
-app.use(require('./middleware/geoBlock'));
+app.use(loggerMiddleware);
+app.use(ipCheckMiddleware);
+app.use(authMiddleware);
+app.use(rateLimitMiddleware);
+app.use(geoBlockMiddleware);
 
 // Proxy to upstream
-app.use(require('./proxy/forward'));
+app.use(forwardProxy);
 
-export default { app, httpServer, io };
+export { app, httpServer, io };

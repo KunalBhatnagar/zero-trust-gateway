@@ -21,4 +21,4 @@ async function sendSlackAlert({ type, severity, ip, clientId }) {
   });
 }
 
-export default { sendSlackAlert };
+export { sendSlackAlert };

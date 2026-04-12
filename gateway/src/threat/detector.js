@@ -3,17 +3,17 @@
 
 function detectAnomaly(baseline, current) {
 
+  // Absolute DDoS: over 500 req/min from single client (check first — most severe)
+  if (current.requestsLastMin > 500) {
+    return { flagged: true, reason: 'DDOS_PATTERN', severity: 'CRITICAL' };
+  }
+
   // Spike: current traffic 10x above baseline
   if (baseline.avgRequestsPerMin > 0) {
     const ratio = current.requestsLastMin / baseline.avgRequestsPerMin;
     if (ratio > 10) {
       return { flagged: true, reason: 'TRAFFIC_SPIKE', severity: 'HIGH', ratio };
     }
-  }
-
-  // Absolute DDoS: over 500 req/min from single client
-  if (current.requestsLastMin > 500) {
-    return { flagged: true, reason: 'DDOS_PATTERN', severity: 'CRITICAL' };
   }
 
   // Endpoint scanning: hitting many different endpoints rapidly
@@ -35,4 +35,4 @@ function detectAnomaly(baseline, current) {
   return { flagged: false };
 }
 
-export default { detectAnomaly };
+export { detectAnomaly };

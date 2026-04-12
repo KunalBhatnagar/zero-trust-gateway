@@ -1,10 +1,10 @@
 // gateway/src/threat/worker.js
 
 import { Worker } from 'bullmq';
-import { zCount, get, set } from '../db/redis';
-import { query } from '../db/postgres';
+import { zCount, get, set } from '../db/redis.js';
+import { query } from '../db/postgres.js';
 import { detectAnomaly } from './detector';
-import { sendSlackAlert } from '../utils/alert';
+import { sendSlackAlert } from '../utils/alert.js';
 
 const connection = { host: 'localhost', port: 6379 };
 

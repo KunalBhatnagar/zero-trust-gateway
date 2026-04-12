@@ -1,7 +1,7 @@
 // gateway/src/middleware/ipCheck.js
 
-import { get, set } from '../db/redis';
-import pool from '../db/postgres';
+import { get, set } from '../db/redis.js';
+import pool from '../db/postgres.js';
 
 // Cache AbuseIPDB results in Redis to avoid calling their API on every request
 const ABUSEIPDB_CACHE_TTL = 86400; // 24 hours

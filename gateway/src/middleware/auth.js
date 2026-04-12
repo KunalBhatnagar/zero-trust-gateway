@@ -1,8 +1,9 @@
 // gateway/src/middleware/auth.js
 
-import { verify } from 'jsonwebtoken';
-import { query } from '../db/postgres';
-import { hashKey } from '../utils/hash';
+import jwt from 'jsonwebtoken';
+const { verify } = jwt;
+import { query } from '../db/postgres.js';
+import { hashKey } from '../utils/hash.js';
 
 export default async function authMiddleware(req, res, next) {
   const authHeader = req.headers['authorization'];

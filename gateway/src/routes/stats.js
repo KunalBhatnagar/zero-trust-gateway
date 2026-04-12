@@ -1,7 +1,7 @@
 import { Router } from 'express';
 const router = Router();
-import { query } from '../db/postgres';
-import { keys as _keys, get, ttl as _ttl, del } from '../db/redis';
+import { query } from '../db/postgres.js';
+import { keys as _keys, get, ttl as _ttl, del } from '../db/redis.js';
 
 // Overall 24h stats
 router.get('/stats', async (req, res) => {

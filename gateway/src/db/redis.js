@@ -18,3 +18,13 @@ redis.on('connect', () => {
 redis.connect();
 
 export default redis;
+
+export const zRemRangeByScore = (...args) => redis.zRemRangeByScore(...args);
+export const zCard             = (...args) => redis.zCard(...args);
+export const zAdd              = (...args) => redis.zAdd(...args);
+export const expire            = (...args) => redis.expire(...args);
+export const get               = (...args) => redis.get(...args);
+export const set               = (...args) => redis.set(...args);
+export const del               = (...args) => redis.del(...args);
+export const keys              = (...args) => redis.keys(...args);
+export const ttl               = (...args) => redis.ttl(...args);

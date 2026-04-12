@@ -3,8 +3,8 @@
 
 import { Router } from 'express';
 const router = Router();
-import { query } from '../db/postgres';
-import { hashKey, generateAPIKey } from '../utils/hash';
+import { query } from '../db/postgres.js';
+import { hashKey, generateAPIKey } from '../utils/hash.js';
 
 // Issue a new API key
 router.post('/keys', async (req, res) => {

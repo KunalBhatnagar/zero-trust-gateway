@@ -1,8 +1,8 @@
 // gateway/src/middleware/logger.js
 // Runs AFTER the proxy responds — captures everything
 
-import { add } from '../threat/queue';
-import { emitRequest } from '../events/emitter';
+import { add } from '../threat/queue.js';
+import { emitRequest } from '../events/emitter.js';
 
 export default function loggerMiddleware(req, res, next) {
   const startTime = Date.now();
