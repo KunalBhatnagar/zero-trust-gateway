@@ -11,7 +11,8 @@
     "test:all":           "NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
     "test:load:normal":  "k6 run tests/load/normal-traffic.js",
     "test:load:ddos":    "k6 run tests/load/ddos-simulation.js",
-    "test:load:creds":   "k6 run tests/load/credential-stuffing.js"
+    "test:load:creds":   "k6 run tests/load/credential-stuffing.js",
+    "seed:demo": "node scripts/seed-demo.js"
     
   },
   "keywords": [],

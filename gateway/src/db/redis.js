@@ -28,3 +28,4 @@ export const set               = (...args) => redis.set(...args);
 export const del               = (...args) => redis.del(...args);
 export const keys              = (...args) => redis.keys(...args);
 export const ttl               = (...args) => redis.ttl(...args);
+export const zCount            = (...args) => redis.zCount(...args);

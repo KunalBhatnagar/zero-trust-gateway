@@ -3,10 +3,10 @@
 import { Worker } from 'bullmq';
 import { zCount, get, set } from '../db/redis.js';
 import { query } from '../db/postgres.js';
-import { detectAnomaly } from './detector';
+import { detectAnomaly } from './detector.js';
 import { sendSlackAlert } from '../utils/alert.js';
 
-const connection = { host: 'localhost', port: 6379 };
+const connection = { host: process.env.REDIS_HOST || 'redis', port: 6379 };
 
 const worker = new Worker('threat-analysis', async (job) => {
   const { clientId, ip, endpoint, statusCode, timestamp } = job.data;
