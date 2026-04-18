@@ -75,11 +75,11 @@ services:
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_ADMIN_KEY:   ${ADMIN_KEY:-admin_key_change_in_prod}
-        NEXT_PUBLIC_GATEWAY_URL: http://localhost:3001
+        NEXT_PUBLIC_GATEWAY_URL: ${NEXT_PUBLIC_GATEWAY_URL:-http://localhost:3001}
     ports:
       - "3000:3000"
     environment:
-      NEXT_PUBLIC_GATEWAY_URL: http://localhost:3001
+      NEXT_PUBLIC_GATEWAY_URL: ${NEXT_PUBLIC_GATEWAY_URL:-http://localhost:3001}
       NEXT_PUBLIC_ADMIN_KEY:   ${ADMIN_KEY:-admin_key_change_in_prod}
     depends_on:
       - gateway
