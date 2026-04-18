@@ -6,7 +6,7 @@ let socket = null;
 export function getSocket() {
   if (!socket) {
     socket = io(
-      process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:3001',
+      process.env.NEXT_PUBLIC_GATEWAY_URL || '',
       { transports: ['websocket', 'polling'] }
     );
   }

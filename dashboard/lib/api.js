@@ -1,4 +1,4 @@
-const BASE      = process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:3001';
+const BASE      = process.env.NEXT_PUBLIC_GATEWAY_URL || '';
 const ADMIN_KEY = process.env.NEXT_PUBLIC_ADMIN_KEY   || 'admin_key';
 
 const h = {
