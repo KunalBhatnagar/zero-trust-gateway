@@ -5,7 +5,7 @@ import request from 'supertest';
 import jwt from 'jsonwebtoken';
 const { sign } = jwt;
 
-let app, httpServer, redis, pool;
+let app, httpServer, redis, pool, queue;
 
 const SECRET = process.env.JWT_SECRET || 'integration_test_secret';
 
@@ -27,6 +27,7 @@ beforeAll(async () => {
   httpServer = mod.httpServer;
   redis      = (await import('../../src/db/redis.js')).default;
   pool       = (await import('../../src/db/postgres.js')).default;
+  queue      = await import('../../src/threat/queue.js');
 
   // Give connections time to establish
   await new Promise(r => setTimeout(r, 800));
@@ -36,6 +37,7 @@ afterAll(async () => {
   await redis.flushAll();
   await redis.quit();
   await pool.end();
+  await queue.close();
   httpServer.close();
 });
 
