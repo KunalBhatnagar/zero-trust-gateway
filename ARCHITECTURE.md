@@ -1,0 +1,190 @@
+# Architecture & Deployment Guide
+
+This document covers the system design decisions and the full
+AWS deployment process for anyone who wants to run this in production.
+
+---
+
+## System Design
+
+### Request Lifecycle
+
+Every request passes through a 4-layer middleware chain before
+reaching the upstream API:
+
+```
+1. ipCheck    ~0.5ms   Redis lookup + AbuseIPDB (cached 24h)
+2. auth       ~2ms     JWT decode OR PostgreSQL API key lookup
+3. rateLimit  ~0.5ms   Redis sorted set sliding window
+4. geoBlock   ~0.5ms   In-memory geo cache lookup
+                       ─────────────────────────────
+Total added latency:   ~3-5ms on a warm cache
+```
+
+After the response is sent, a BullMQ job fires asynchronously
+for threat analysis — this adds zero latency to the client.
+
+---
+
+### Why Redis for Rate Limiting
+
+Fixed window rate limiting has a known edge case:
+
+```
+Window 1: 00:00 - 01:00  →  client sends 100 requests at 00:59
+Window 2: 01:00 - 02:00  →  client sends 100 requests at 01:01
+Result: 200 requests in 2 seconds — limit bypassed
+```
+
+Sliding window fixes this using a Redis sorted set where each
+request is scored by its timestamp. On every request:
+
+1. Remove entries older than 60 seconds
+2. Count what remains
+3. If count >= limit → reject
+4. Otherwise → add this request, continue
+
+This gives accurate per-minute enforcement at any time boundary.
+
+---
+
+### Why BullMQ for Threat Detection
+
+Threat analysis involves multiple I/O operations:
+- Redis reads (request counts, error rates)
+- PostgreSQL reads (7-day baseline)
+- PostgreSQL writes (audit log, threat events)
+- External HTTP call (Slack webhook)
+
+Running these synchronously would add 20-50ms to every request.
+Instead, the gateway pushes a job to BullMQ (a Redis write, ~0.3ms)
+and returns the response. The worker processes it in the background.
+
+If the server crashes mid-analysis, the job survives in Redis
+and retries automatically on restart.
+
+---
+
+### Data Storage Strategy
+
+```
+Redis (hot data — ephemeral, fast)
+  ratelimit:{clientId}    sorted set, auto-expires 60s
+  blocklist:ip:{ip}       string,     auto-expires 24h (or permanent)
+  abuseipdb:{ip}          string,     auto-expires 24h
+  errors:401:{clientId}   counter,    auto-expires 60s
+
+PostgreSQL (cold data — persistent, queryable)
+  api_keys                API key hashes, scopes, rate limits
+  audit_logs              every request — endpoint, status, timing
+  threat_events           detected attacks with severity + details
+  blocked_ips             permanent ban records with reason
+```
+
+The rule: if it needs to be checked on every request → Redis.
+If it needs to survive a restart or be queried historically → PostgreSQL.
+
+---
+
+## AWS Deployment
+
+### Infrastructure Used
+
+```
+EC2 t2.micro    $0/month on free tier (or ~$8/month after)
+EBS 20GB gp3    ~$1.60/month
+Total:          ~$0-10/month
+```
+
+### Security Group Rules
+
+```
+Port 22    SSH      Your IP only
+Port 80    HTTP     0.0.0.0/0 (public)
+Port 3001  Gateway  0.0.0.0/0 (public)
+```
+
+### Server Setup
+
+```bash
+# After SSH into EC2
+sudo dnf update -y
+sudo dnf install -y docker git nodejs npm
+sudo systemctl enable docker
+sudo systemctl start docker
+sudo usermod -aG docker ec2-user
+
+# Docker Compose
+sudo curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 \
+  -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+```
+
+### Environment Variables (production)
+
+```bash
+JWT_SECRET          64-char random hex string
+ADMIN_KEY           32-char random hex string
+ABUSEIPDB_KEY       from abuseipdb.com/register (free)
+SLACK_WEBHOOK_URL   from api.slack.com/apps
+DATABASE_URL        postgresql://admin:password@postgres:5432/gateway_db
+REDIS_URL           redis://redis:6379
+```
+
+Generate secrets:
+```bash
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+```
+
+### Deployment Commands
+
+```bash
+# First deploy
+git clone https://github.com/KunalBhatnagar/zero-trust-gateway
+cd zero-trust-gateway
+cp .env.example .env
+nano .env                          # fill in real values
+docker-compose up --build -d
+node scripts/seed-demo.js
+
+# Subsequent deploys (GitHub Actions handles this automatically)
+git pull origin main
+docker-compose up -d --no-deps --force-recreate gateway worker dashboard
+```
+
+### Useful Operations
+
+```bash
+# View live logs
+docker-compose logs -f gateway
+
+# Restart just the gateway (zero downtime for DB/Redis)
+docker-compose restart gateway
+
+# Check all containers are healthy
+docker-compose ps
+
+# Run database query directly
+docker-compose exec postgres psql -U admin -d gateway_db \
+  -c "SELECT COUNT(*) FROM audit_logs WHERE created_at > NOW() - INTERVAL '1 hour'"
+
+# Flush Redis (clears all bans and rate limits — use carefully)
+docker-compose exec redis redis-cli FLUSHALL
+
+# View current blocked IPs in Redis
+docker-compose exec redis redis-cli KEYS "blocklist:ip:*"
+```
+
+---
+
+## Monitoring
+
+The dashboard at `http://YOUR_EC2_IP:3000` shows:
+
+- Live request feed via WebSocket
+- Requests/minute chart (last hour)
+- Blocked IP count and management
+- Threat event log with severity
+
+For production alerting, Slack webhooks fire automatically
+when HIGH or CRITICAL threats are detected.
